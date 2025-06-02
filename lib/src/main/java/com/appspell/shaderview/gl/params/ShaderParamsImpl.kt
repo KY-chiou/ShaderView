@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture
 import android.opengl.GLES32
 import android.view.Surface
 import com.appspell.shaderview.annotations.ShaderExperimentalApi
+import com.appspell.shaderview.ext.TextureFilter
 import com.appspell.shaderview.ext.createExternalTexture
 import com.appspell.shaderview.ext.loadBitmapForTexture
 import com.appspell.shaderview.ext.toGlTexture
@@ -89,10 +90,14 @@ class ShaderParamsImpl : ShaderParams {
         }
     }
 
-    override fun bindParams(shaderProgram: Int, resources: Resources?) {
+    override fun bindParams(
+        shaderProgram: Int,
+        resources: Resources?,
+        textureFilter: TextureFilter
+    ) {
         for (key in map.keys) {
             updateUniformLocation(key, shaderProgram)
-            resources?.also { bindTextures(key, resources) }
+            resources?.also { bindTextures(key, resources, textureFilter) }
         }
     }
 
@@ -157,7 +162,11 @@ class ShaderParamsImpl : ShaderParams {
         }
     }
 
-    private fun bindTextures(paramName: String, resources: Resources) {
+    private fun bindTextures(
+        paramName: String,
+        resources: Resources,
+        textureFilter: TextureFilter
+    ) {
         map[paramName]?.apply {
             when (valeType) {
                 // We have a different flow for Textures.
@@ -173,7 +182,8 @@ class ShaderParamsImpl : ShaderParams {
                         // upload bitmap to GPU
                         bitmap?.toGlTexture(
                             needToRecycle = textureParam.needToRecycleWhenUploaded,
-                            textureSlot = textureParam.textureSlot
+                            textureSlot = textureParam.textureSlot,
+                            textureFilter = textureFilter
                         )
                     }.also { textureId ->
                         value = (value as? TextureParam)?.copy(
@@ -185,7 +195,7 @@ class ShaderParamsImpl : ShaderParams {
                 Param.ValueType.SAMPLER_OES -> {
                     if (value == null) {
                         // if it's not initialized
-                        location = createExternalTexture()
+                        location = createExternalTexture(textureFilter)
                         val surfaceTexture = SurfaceTexture(location)
                         value = TextureOESParam(
                             surfaceTexture = surfaceTexture,

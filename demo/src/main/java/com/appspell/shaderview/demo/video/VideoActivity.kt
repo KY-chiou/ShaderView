@@ -8,7 +8,8 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import com.appspell.shaderview.demo.BuildConfig
 import com.appspell.shaderview.demo.R
-import com.appspell.shaderview.demo.databinding.ActivityVideoBinding
+import com.appspell.shaderview.demo.databinding.ActivityVideoGridBinding
+import com.appspell.shaderview.ext.TextureFilter
 import com.appspell.shaderview.ext.getTexture2dOESSurface
 import com.appspell.shaderview.gl.params.ShaderParamsBuilder
 import com.google.android.exoplayer2.MediaItem
@@ -21,27 +22,36 @@ import com.google.android.exoplayer2.upstream.RawResourceDataSource
 import com.google.android.exoplayer2.util.Util
 
 class VideoActivity : AppCompatActivity() {
-    lateinit var binding: ActivityVideoBinding
+    lateinit var binding: ActivityVideoGridBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityVideoBinding.inflate(layoutInflater)
+        binding = ActivityVideoGridBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.shaderView.apply {
-            updateContinuously = true // update the view each frame (do not forget set it "true")
-            fragmentShaderRawResId = R.raw.video_shader // fragment shader for video frame processing
-            shaderParams = ShaderParamsBuilder()
-                .addTextureOES("uVideoTexture") // video texture input/output
-                .build()
-            onViewReadyListener = { shader ->
-                // get surface from shader params
-                val surface = shader.params.getTexture2dOESSurface("uVideoTexture")
+        listOf(binding.shaderView1, binding.shaderView2, binding.shaderView3, binding.shaderView4)
+            .forEachIndexed { index, shaderView ->
+                shaderView.apply {
+                    textureFilter = when (index) {
+                        1 -> TextureFilter.Nearest
+                        2 -> TextureFilter.LinearMipmap
+                        3 -> TextureFilter.NearestMipmap
+                        else -> TextureFilter.Linear
+                    }
+                    updateContinuously = true // update the view each frame (do not forget set it "true")
+                    fragmentShaderRawResId = R.raw.video_shader // fragment shader for video frame processing
+                    shaderParams = ShaderParamsBuilder()
+                        .addTextureOES("uVideoTexture") // video texture input/output
+                        .build()
+                    onViewReadyListener = { shader ->
+                        // get surface from shader params
+                        val surface = shader.params.getTexture2dOESSurface("uVideoTexture")
 
-                // initialize video player when shader is ready
-                initVideoPlayer(surface)
+                        // initialize video player when shader is ready
+                        initVideoPlayer(surface)
+                    }
+                }
             }
-        }
     }
 
     /**

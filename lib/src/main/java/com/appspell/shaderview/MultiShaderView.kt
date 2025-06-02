@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import androidx.annotation.AttrRes
 import androidx.annotation.RawRes
 import androidx.annotation.StyleRes
+import com.appspell.shaderview.ext.TextureFilter
 import com.appspell.shaderview.gl.params.ShaderParams
 import com.appspell.shaderview.gl.render.GLQuadMultiRender
 import com.appspell.shaderview.gl.render.GLQuadMultiRenderImpl
@@ -99,6 +100,8 @@ class MultiShaderView @JvmOverloads constructor(
             return getFPS()
         }
 
+    var textureFilter: TextureFilter = TextureFilter.Linear
+
     private val rendererListener = object : GLQuadMultiRender.MultiShaderViewListener {
         override fun onSurfaceCreated() {
             initShaders()
@@ -114,7 +117,7 @@ class MultiShaderView @JvmOverloads constructor(
         }
     }
 
-    private val renderer: GLQuadMultiRender = GLQuadMultiRenderImpl()
+    private val renderer: GLQuadMultiRender = GLQuadMultiRenderImpl(textureFilter)
 
     init {
         setEGLContextClientVersion(OPENGL_VERSION)
@@ -188,7 +191,7 @@ class MultiShaderView @JvmOverloads constructor(
 
         // bind shader params.
         // note: we have to pass [android.content.res.Resources] to be able to load textures from Resources
-        renderer.shaders.forEach { it.bindParams(resources) }
+        renderer.shaders.forEach { it.bindParams(resources, textureFilter) }
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {

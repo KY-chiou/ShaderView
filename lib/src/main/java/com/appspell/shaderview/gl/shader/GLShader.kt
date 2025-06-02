@@ -1,6 +1,7 @@
 package com.appspell.shaderview.gl.shader
 
 import android.content.res.Resources
+import com.appspell.shaderview.ext.TextureFilter
 import com.appspell.shaderview.gl.params.ShaderParams
 
 const val UNKNOWN_PROGRAM = 0
@@ -15,7 +16,7 @@ interface GLShader {
     var program: Int
 
     fun createProgram(vertexSource: String, fragmentSource: String): Boolean
-    fun bindParams(resources: Resources? = null)
+    fun bindParams(resources: Resources? = null, textureFilter: TextureFilter = TextureFilter.Linear)
 
     fun onDrawFrame()
     fun release()
