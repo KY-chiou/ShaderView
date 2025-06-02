@@ -4,6 +4,7 @@ import android.content.res.Resources
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
 import com.appspell.shaderview.annotations.ShaderExperimentalApi
+import com.appspell.shaderview.ext.TextureFilter
 
 const val UNKNOWN_LOCATION = -1
 
@@ -30,7 +31,7 @@ interface ShaderParams {
     fun getParamValue(paramName: String): Any?
 
     fun pushValuesToProgram()
-    fun bindParams(shaderProgram: Int, resources: Resources?)
+    fun bindParams(shaderProgram: Int, resources: Resources?, textureFilter: TextureFilter)
 
     fun release()
 

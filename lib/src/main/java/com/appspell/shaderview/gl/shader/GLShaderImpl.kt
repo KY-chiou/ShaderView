@@ -2,6 +2,7 @@ package com.appspell.shaderview.gl.shader
 
 import android.content.res.Resources
 import android.opengl.GLES32
+import com.appspell.shaderview.ext.TextureFilter
 import com.appspell.shaderview.gl.params.ShaderParams
 import com.appspell.shaderview.log.LibLog
 
@@ -82,11 +83,11 @@ class GLShaderImpl constructor(
      * @param resources - we need to upload textures from resources
      * if you don't need to load textures from android resources, you may omit such parameter
      */
-    override fun bindParams(resources: Resources?) {
+    override fun bindParams(resources: Resources?, textureFilter: TextureFilter) {
         if (program == UNKNOWN_PROGRAM) {
             return
         }
-        params.bindParams(program, resources)
+        params.bindParams(program, resources, textureFilter)
     }
 
     private fun pushValuesToProgram() {

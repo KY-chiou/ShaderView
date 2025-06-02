@@ -18,15 +18,18 @@ import java.nio.IntBuffer
  *
  * shader example: video_shader.fsh in demo project https://github.com/appspell/ShaderView/tree/main/demo/src/main/res/raw
  */
-fun createExternalTexture(): Int {
+fun createExternalTexture(textureFilter: TextureFilter = TextureFilter.Linear): Int {
     val textureIds = IntArray(1)
     GLES32.glGenTextures(1, IntBuffer.wrap(textureIds))
     if (textureIds[0] == 0) {
         throw java.lang.RuntimeException("It's not possible to generate ID for texture")
     }
+
+    val filter = textureFilter.toGLESFilter()
+
     GLES32.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureIds[0])
-    GLES32.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES32.GL_TEXTURE_MIN_FILTER, GLES32.GL_LINEAR)
-    GLES32.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES32.GL_TEXTURE_MAG_FILTER, GLES32.GL_LINEAR)
+    GLES32.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES32.GL_TEXTURE_MIN_FILTER, filter)
+    GLES32.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES32.GL_TEXTURE_MAG_FILTER, filter)
 
     GLES32.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES32.GL_TEXTURE_WRAP_S, GLES32.GL_CLAMP_TO_EDGE)
     GLES32.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES32.GL_TEXTURE_WRAP_T, GLES32.GL_CLAMP_TO_EDGE)
@@ -46,7 +49,7 @@ fun Resources.loadBitmapForTexture(@DrawableRes drawableRes: Int): Bitmap {
  * @needToRecycle - do we need to recycle current Bitmap when we write it GPI?
  */
 @Throws(RuntimeException::class)
-fun Bitmap.toGlTexture(needToRecycle: Boolean = true, textureSlot: Int = GLES32.GL_TEXTURE0): Int {
+fun Bitmap.toGlTexture(needToRecycle: Boolean = true, textureSlot: Int = GLES32.GL_TEXTURE0, textureFilter: TextureFilter = TextureFilter.Linear): Int {
     // init textures
     val textureIds = IntArray(1)
     GLES32.glGenTextures(1, textureIds, 0) // generate ID for texture
@@ -58,8 +61,9 @@ fun Bitmap.toGlTexture(needToRecycle: Boolean = true, textureSlot: Int = GLES32.
     GLES32.glBindTexture(GLES32.GL_TEXTURE_2D, textureIds[0]) // bind texture by ID with active slot
 
     // texture filters
-    GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MIN_FILTER, GLES32.GL_LINEAR)
-    GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MAG_FILTER, GLES32.GL_LINEAR)
+    val filter = textureFilter.toGLESFilter()
+    GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MIN_FILTER, filter)
+    GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MAG_FILTER, filter)
 
     // write bitmap to GPU
     GLUtils.texImage2D(GLES32.GL_TEXTURE_2D, 0, this, 0)
@@ -72,4 +76,18 @@ fun Bitmap.toGlTexture(needToRecycle: Boolean = true, textureSlot: Int = GLES32.
     GLES32.glBindTexture(GLES32.GL_TEXTURE_2D, 0)
 
     return textureIds[0]
+}
+
+enum class TextureFilter {
+    Linear,
+    Nearest,
+    LinearMipmap,
+    NearestMipmap;
+
+    fun toGLESFilter() = when (this) {
+        Linear -> GLES32.GL_LINEAR
+        Nearest -> GLES32.GL_NEAREST
+        LinearMipmap -> GLES32.GL_LINEAR_MIPMAP_LINEAR
+        NearestMipmap -> GLES32.GL_NEAREST_MIPMAP_NEAREST
+    }
 }

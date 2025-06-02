@@ -2,6 +2,7 @@ package com.appspell.shaderview.gl.render
 
 import android.opengl.GLES32
 import android.opengl.Matrix
+import com.appspell.shaderview.ext.TextureFilter
 import com.appspell.shaderview.gl.params.ShaderParams
 import com.appspell.shaderview.gl.render.GLQuadRenderImpl.Companion.VERTEX_SHADER_IN_POSITION
 import com.appspell.shaderview.gl.render.GLQuadRenderImpl.Companion.VERTEX_SHADER_IN_TEXTURE_COORD
@@ -25,6 +26,8 @@ private const val TRIANGLE_VERTICES_DATA_UV_OFFSET = 3
 
 interface GLQuadMultiRender : GLTextureView.Renderer {
 
+    val fboTextureFilter: TextureFilter
+
     var shaders: List<GLShader>
 
     var listener: MultiShaderViewListener?
@@ -38,7 +41,9 @@ interface GLQuadMultiRender : GLTextureView.Renderer {
     }
 }
 
-internal class GLQuadMultiRenderImpl : GLQuadMultiRender {
+internal class GLQuadMultiRenderImpl(
+    override var fboTextureFilter: TextureFilter = TextureFilter.Linear
+) : GLQuadMultiRender {
 
     companion object {
         const val FRAGMENT_SHADER_IN_TEXTURE = "uInputTexture"
@@ -105,6 +110,7 @@ internal class GLQuadMultiRenderImpl : GLQuadMultiRender {
 
         // FBOs
         if (width != this.width || height != this.height) {
+            val filter = fboTextureFilter.toGLESFilter()
             for (i in 0..1) {
                 GLES32.glBindTexture(GLES32.GL_TEXTURE_2D, fboTextures[i])
                 GLES32.glTexImage2D(
@@ -112,8 +118,8 @@ internal class GLQuadMultiRenderImpl : GLQuadMultiRender {
                     width, height, 0, GLES32.GL_RGBA,
                     GLES32.GL_UNSIGNED_BYTE, null
                 )
-                GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MIN_FILTER, GLES32.GL_LINEAR)
-                GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MAG_FILTER, GLES32.GL_LINEAR)
+                GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MIN_FILTER, filter)
+                GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MAG_FILTER, filter)
                 GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_WRAP_S, GLES32.GL_CLAMP_TO_EDGE)
                 GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_WRAP_T, GLES32.GL_CLAMP_TO_EDGE)
 

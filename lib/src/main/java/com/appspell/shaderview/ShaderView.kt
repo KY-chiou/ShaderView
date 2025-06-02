@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import androidx.annotation.AttrRes
 import androidx.annotation.RawRes
 import androidx.annotation.StyleRes
+import com.appspell.shaderview.ext.TextureFilter
 import com.appspell.shaderview.gl.params.ShaderParams
 import com.appspell.shaderview.gl.params.ShaderParamsImpl
 import com.appspell.shaderview.gl.render.GLQuadRender
@@ -109,6 +110,8 @@ class ShaderView @JvmOverloads constructor(
             return getFPS()
         }
 
+    var textureFilter: TextureFilter = TextureFilter.Linear
+
     private val rendererListener = object : GLQuadRender.ShaderViewListener {
         override fun onSurfaceCreated() {
             initShaders()
@@ -124,7 +127,9 @@ class ShaderView @JvmOverloads constructor(
         }
     }
 
-    private val renderer: GLQuadRender = GLQuadRenderImpl(shader = GLShaderImpl(params = ShaderParamsImpl()))
+    private val renderer: GLQuadRender = GLQuadRenderImpl(
+        shader = GLShaderImpl(params = ShaderParamsImpl())
+    )
 
     init {
         initAttr(attrs)
@@ -218,7 +223,7 @@ class ShaderView @JvmOverloads constructor(
 
         // bind shader params.
         // note: we have to pass [android.content.res.Resources] to be able to load textures from Resources
-        renderer.shader.bindParams(resources)
+        renderer.shader.bindParams(resources, textureFilter)
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
